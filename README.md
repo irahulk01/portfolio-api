@@ -1,59 +1,179 @@
-# Simple Server
+# portfolio-api
 
-A minimal Express server scaffold.
+A simple and clean backend API built with **Node.js, Express, and MongoDB** for powering a personal portfolio website.  
+This API is designed to handle health checks, future portfolio data, analytics (like visit counts), and scalable backend features.
 
-## Install
+---
+
+## Tech Stack
+
+- Node.js
+- Express.js
+- MongoDB (Atlas or Local)
+- Mongoose
+- dotenv
+
+---
+
+## Project Purpose
+
+`portfolio-api` serves as the backend for a portfolio application.  
+It is intentionally kept minimal so it can be:
+
+- easy to understand
+- easy to deploy
+- easy to extend (projects, blogs, visits, contact forms, etc.)
+
+---
+
+## Folder Structure
+
+```text
+portfolio-api/
+├── server.js
+├── package.json
+├── .env
+├── node_modules/
+└── README.md
+```
+
+---
+
+## Setup Instructions
+
+### 1. Clone the repository
 
 ```bash
-cd simple-server
+git clone <your-repo-url>
+cd portfolio-api
+```
+
+---
+
+### 2. Install dependencies
+
+```bash
 npm install
 ```
 
-## Run
+Required packages:
+- express
+- mongoose
+- dotenv
 
-```bash
-# start normally
-npm start
+---
 
-# or with nodemon for development
-npm run dev
+### 3. Environment configuration
+
+Create a `.env` file in the project root:
+
+```env
+PORT=5001
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/portfolio
 ```
 
-The server listens on the port defined in the `PORT` environment variable or `5000` by default.
+Notes:
+- Do not wrap values in quotes
+- Make sure the database name (`portfolio`) exists
+- For MongoDB Atlas, allow IP access `0.0.0.0/0` during development
 
-MongoDB Setup
----------------
+---
 
-Local MongoDB:
-
-1. Install MongoDB via Homebrew (recommended on macOS):
-
-```bash
-brew tap mongodb/brew
-brew install mongodb-community@6.0
-brew services start mongodb-community@6.0
-```
-
-2. Default local URI: `mongodb://localhost:27017/portfolio`
-
-MongoDB Atlas (cloud):
-
-1. Create a free cluster at https://www.mongodb.com/cloud/atlas and create a database user.
-2. Obtain the connection string (choose the SRV format) and set `MONGODB_URI` accordingly.
-
-Environment:
-
-1. Copy `.env.example` to `.env` and set `MONGODB_URI` and `PORT`:
+### 4. Run the server
 
 ```bash
-cp .env.example .env
-# edit .env and set MONGODB_URI
+node server.js
 ```
 
-2. Start the server:
+You should see:
 
-```bash
-npm start
+```text
+✅ MongoDB connected
+🚀 Server running on http://localhost:5001
 ```
 
-The app (`server.js`) will use `process.env.MONGODB_URI` and will log connection status on startup.
+---
+
+## Available Routes
+
+### Root
+```
+GET /
+```
+Response:
+```text
+Hello from Simple Server
+```
+
+---
+
+### Health Check
+```
+GET /health
+```
+
+Response example:
+```json
+{
+  "mongoState": 1,
+  "mongoStateText": "connected",
+  "ping": "ok"
+}
+```
+
+This endpoint is useful for:
+- verifying MongoDB connection
+- deployment health checks
+- debugging environment issues
+
+---
+
+## MongoDB Setup
+
+### Option 1: Local MongoDB
+
+```text
+mongodb://localhost:27017/portfolio
+```
+
+Make sure MongoDB is running locally.
+
+---
+
+### Option 2: MongoDB Atlas (Recommended)
+
+1. Create a free cluster on MongoDB Atlas
+2. Create a database user
+3. Copy the SRV connection string
+4. Add your IP or allow `0.0.0.0/0`
+5. Paste the URI into `.env` as `MONGO_URI`
+
+---
+
+## Scripts (optional)
+
+Add these to `package.json` if needed:
+
+```json
+"scripts": {
+  "start": "node server.js",
+  "dev": "nodemon server.js"
+}
+```
+
+---
+
+## Future Enhancements
+
+- Portfolio projects API
+- Visit counter
+- Blog system
+- Contact form handling
+- Authentication (JWT)
+- Rate limiting & security middleware
+
+---
+
+## License
+
+This project is intended for personal and educational use.
