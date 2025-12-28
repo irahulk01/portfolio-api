@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
 
 mongoose
@@ -20,6 +20,14 @@ mongoose
   });
 
   
+const visitSchema = new mongoose.Schema({
+  _id: { type: String, default: 'portfolio_visits' },
+  count: { type: Number, default: 0 },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+const Visit = mongoose.model('Visit', visitSchema, 'portfolio');
+
 app.get('/', (req, res) => {
   res.send('Hello from Simple Server');
 });
@@ -42,6 +50,46 @@ app.get('/health', async (req, res) => {
   }
 
   res.json(result);
+});
+
+app.get('/visitcount', async (req, res) => {
+  try {
+    let visit = await Visit.findById('portfolio_visits');
+
+    if (!visit) {
+      visit = await Visit.create({
+        _id: 'portfolio_visits',
+        count: 0,
+      });
+    }
+
+    res.json({
+      count: visit.count,
+      updatedAt: visit.updatedAt,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/visitcount', async (req, res) => {
+  try {
+    const visit = await Visit.findByIdAndUpdate(
+      'portfolio_visits',
+      {
+        $inc: { count: 1 },
+        $set: { updatedAt: new Date() },
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({
+      count: visit.count,
+      updatedAt: visit.updatedAt,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.listen(PORT, () => {
