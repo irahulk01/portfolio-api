@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
+    "build": "npm install --production=false && node --check src/index.js",
     "start": "node src/index.js",
     "dev": "nodemon --watch src --exec \"node src/index.js\""
   },
