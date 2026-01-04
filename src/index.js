@@ -1,10 +1,15 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import cors from 'cors';
+import contactRouter from './routes/contactform.js';
+import { getContacts, submitContact } from './controllers/contactFormController.js';
 
 dotenv.config();
 
 const app = express();
+app.use(cors());
+app.options('*', cors());
 app.use(express.json());
 
 // ---------------- MongoDB (safe for Vercel + local) ----------------
@@ -69,6 +74,12 @@ app.get('/visitcount', async (req, res) => {
   });
 });
 
+// expose contact endpoints at top-level paths
+app.get('/getContacts', getContacts);
+app.post('/submitContact', submitContact);
+
+// mount contactform router (still available under /contactform)
+app.use('/contactform', contactRouter);
 app.post('/visitcount', async (req, res) => {
   const visit = await Visit.findByIdAndUpdate(
     'portfolio_visits',
