@@ -8,8 +8,29 @@ import { getContacts, submitContact } from './controllers/contactFormController.
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.options('*', cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://irahulk.netlify.app"
+    ],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type"]
+  })
+);
+app.use(express.json());
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  next();
+});
 app.use(express.json());
 
 // ---------------- MongoDB (safe for Vercel + local) ----------------
@@ -58,6 +79,22 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.get('/api/visitcount', async (req, res) => {
+  let visit = await Visit.findById('portfolio_visits');
+
+  if (!visit) {
+    visit = await Visit.create({
+      _id: 'portfolio_visits',
+      count: 0,
+    });
+  }
+
+  res.json({
+    count: visit.count,
+    updatedAt: visit.updatedAt,
+  });
+});
+
 app.get('/visitcount', async (req, res) => {
   let visit = await Visit.findById('portfolio_visits');
 
@@ -78,8 +115,40 @@ app.get('/visitcount', async (req, res) => {
 app.get('/getContacts', getContacts);
 app.post('/submitContact', submitContact);
 
+// Return last 10 contacts (sorted by createdAt descending)
+app.get('/getLast10Contacts', async (req, res) => {
+  try {
+    const contacts = await mongoose.connection
+      .collection('contact_form')
+      .find()
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .toArray();
+
+    res.json(contacts);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch last 10 contacts' });
+  }
+});
+
 // mount contactform router (still available under /contactform)
 app.use('/contactform', contactRouter);
+app.post('/api/visitcount', async (req, res) => {
+  const visit = await Visit.findByIdAndUpdate(
+    'portfolio_visits',
+    {
+      $inc: { count: 1 },
+      $set: { updatedAt: new Date() },
+    },
+    { upsert: true, new: true }
+  );
+
+  res.json({
+    count: visit.count,
+    updatedAt: visit.updatedAt,
+  });
+});
+
 app.post('/visitcount', async (req, res) => {
   const visit = await Visit.findByIdAndUpdate(
     'portfolio_visits',
