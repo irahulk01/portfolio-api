@@ -1,36 +1,26 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import contactRouter from './routes/contactform.js';
-import { getContacts, submitContact } from './controllers/contactFormController.js';
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
+import contactRouter from "./routes/contactform.js";
+import {
+  getContacts,
+  submitContact,
+} from "./controllers/contactFormController.js";
 
 dotenv.config();
 
 const app = express();
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://irahulk.netlify.app"
-    ],
+    origin: ["http://localhost:5173", "https://irahulk.netlify.app"],
     methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type"]
-  })
+    allowedHeaders: ["Content-Type"],
+  }),
 );
 app.use(express.json());
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  next();
-});
+// Manual CORS middleware removed in favor of 'cors' package above
 app.use(express.json());
 
 // ---------------- MongoDB (safe for Vercel + local) ----------------
@@ -44,33 +34,32 @@ async function connectDB() {
   });
 
   isConnected = true;
-  console.log('✅ MongoDB connected');
+  console.log("✅ MongoDB connected");
 }
 
 connectDB();
 
 // ---------------- Schema & Model ----------------
 const visitSchema = new mongoose.Schema({
-  _id: { type: String, default: 'portfolio_visits' },
+  _id: { type: String, default: "portfolio_visits" },
   count: { type: Number, default: 0 },
   updatedAt: { type: Date, default: Date.now },
 });
 
 const Visit =
-  mongoose.models.Visit ||
-  mongoose.model('Visit', visitSchema, 'portfolio');
+  mongoose.models.Visit || mongoose.model("Visit", visitSchema, "portfolio");
 
 // ---------------- Routes ----------------
-app.get('/', (req, res) => {
-  res.send('Portfolio API running');
+app.get("/", (req, res) => {
+  res.send("Portfolio API running");
 });
 
-app.get('/health', (req, res) => {
+app.get("/health", (req, res) => {
   const states = {
-    0: 'disconnected',
-    1: 'connected',
-    2: 'connecting',
-    3: 'disconnecting',
+    0: "disconnected",
+    1: "connected",
+    2: "connecting",
+    3: "disconnecting",
   };
 
   res.json({
@@ -79,12 +68,12 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.get('/api/visitcount', async (req, res) => {
-  let visit = await Visit.findById('portfolio_visits');
+app.get("/api/visitcount", async (req, res) => {
+  let visit = await Visit.findById("portfolio_visits");
 
   if (!visit) {
     visit = await Visit.create({
-      _id: 'portfolio_visits',
+      _id: "portfolio_visits",
       count: 0,
     });
   }
@@ -95,12 +84,12 @@ app.get('/api/visitcount', async (req, res) => {
   });
 });
 
-app.get('/visitcount', async (req, res) => {
-  let visit = await Visit.findById('portfolio_visits');
+app.get("/visitcount", async (req, res) => {
+  let visit = await Visit.findById("portfolio_visits");
 
   if (!visit) {
     visit = await Visit.create({
-      _id: 'portfolio_visits',
+      _id: "portfolio_visits",
       count: 0,
     });
   }
@@ -112,14 +101,14 @@ app.get('/visitcount', async (req, res) => {
 });
 
 // expose contact endpoints at top-level paths
-app.get('/getContacts', getContacts);
-app.post('/submitContact', submitContact);
+app.get("/getContacts", getContacts);
+app.post("/submitContact", submitContact);
 
 // Return last 10 contacts (sorted by createdAt descending)
-app.get('/getLast10Contacts', async (req, res) => {
+app.get("/getLast10Contacts", async (req, res) => {
   try {
     const contacts = await mongoose.connection
-      .collection('contact_form')
+      .collection("contact_form")
       .find()
       .sort({ createdAt: -1 })
       .limit(10)
@@ -127,20 +116,20 @@ app.get('/getLast10Contacts', async (req, res) => {
 
     res.json(contacts);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch last 10 contacts' });
+    res.status(500).json({ error: "Failed to fetch last 10 contacts" });
   }
 });
 
 // mount contactform router (still available under /contactform)
-app.use('/contactform', contactRouter);
-app.post('/api/visitcount', async (req, res) => {
+app.use("/contactform", contactRouter);
+app.post("/api/visitcount", async (req, res) => {
   const visit = await Visit.findByIdAndUpdate(
-    'portfolio_visits',
+    "portfolio_visits",
     {
       $inc: { count: 1 },
       $set: { updatedAt: new Date() },
     },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
 
   res.json({
@@ -149,14 +138,14 @@ app.post('/api/visitcount', async (req, res) => {
   });
 });
 
-app.post('/visitcount', async (req, res) => {
+app.post("/visitcount", async (req, res) => {
   const visit = await Visit.findByIdAndUpdate(
-    'portfolio_visits',
+    "portfolio_visits",
     {
       $inc: { count: 1 },
       $set: { updatedAt: new Date() },
     },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
 
   res.json({
